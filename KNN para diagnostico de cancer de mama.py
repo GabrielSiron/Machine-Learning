@@ -21,55 +21,49 @@ O ultimo item (10) diz respeito ao rotulo dos dados (paciente e controle)
 
 '''
 
-def distEuclidiana(dado, teste):
-    soma = 0
-    for item in range(len(dado)):
-        soma += math.pow(dado[item] - teste[item], 2)
 
-    return math.sqrt(soma)
+class Knn:
 
-def knn(amostra, comp, k):
-    class1, class2 = 0, 0
-    while True:
-        valor = min(comp)
-        classif = comp[valor]
-        comp.pop(valor)
+    def distEuclidiana(self, dado, teste):
+        soma = 0
+        for item in range(len(dado)):
+            soma += math.pow(dado[item] - teste[item], 2)
 
-        if class1 + class2 <= k:
-            if classif == 1:
-                class1 += 1
-            else:
-                class2 += 2
-        else:
-            if amostra[len(amostra)-1] == 1:
-                if class1 > class2:
-                    return True
+        return math.sqrt(soma)
+
+    def votMajor(self, rotuloTeste, comp, k):
+        class1, class2 = 0, 0
+        for i in range(k):
+            valor = min(comp)
+            rotulo = comp[valor]
+            comp.pop(valor)
+            print(rotulo, end = '')
+            if i != k-1:
+                if rotulo == 1:
+                    class1 += 1
                 else:
-                    return False
+                    class2 += 1
             else:
-                if class2 > class1:
-                    return True
+                if rotuloTeste == 1:
+                    if class1 > class2:
+                        return True
+                    else:
+                        return False
                 else:
-                    return False
+                    if class2 > class1:
+                        return True
+                    else:
+                        return False
 
-def votMajor(teste, treino):
+    def knn(self, amostra, base):
 
-    acertos, erros = 0, 0
-
-    for i in range(len(teste)):
         n = {}
-        for j in range(len(treino)):
-            dist = distEuclidiana(teste[i][:len(teste[i]) - 1], treino[j])
-            n.update({dist: treino[j][len(treino[j]) - 1]})
 
-        result = knn(teste[i], n, 15)
+        for j in range(len(base)):
+            dist = self.distEuclidiana(amostra[:len(amostra) - 1], base[j])
+            n.update({dist: amostra[len(amostra) - 1]})
 
-        if result:
-            acertos += 1
-        else:
-            erros += 1
-
-    return acertos, erros
+        return n
 
 # Principal
 arquivo = open('C:\\Users\\Sironz\\Desktop\\Relembrando como se programa\\dataset_cancer.txt', 'r')
@@ -93,11 +87,21 @@ random.shuffle(dataset)
 pTreino = 0.7
 
 treino = dataset[:int(len(dataset) * pTreino)]
-teste = dataset[int(len(dataset) * pTreino):]
+testes = dataset[int(len(dataset) * pTreino):]
 
 # Treinamento
 
-acertos, erros = votMajor(teste, treino)
+classfier = Knn()
+acertos, erros = 0, 0
 
-print('Porcentagem de acertos: %d' % (100*(acertos / len(teste))))
-print('Porcentagem de erros: %d' % (100*(erros / len(teste))))
+for teste in testes:
+    vizinhos = classfier.knn(teste, treino)
+    result = classfier.votMajor(teste[-1], vizinhos, 5)
+    print(teste[-1])
+    if result:
+        acertos += 1
+    else:
+        erros += 1
+
+print('Porcentagem de acertos: %d' % (100*(acertos / len(testes))))
+print('Porcentagem de erros: %d' % (100*(erros / len(testes))))
