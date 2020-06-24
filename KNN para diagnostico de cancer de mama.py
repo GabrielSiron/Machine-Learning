@@ -44,16 +44,13 @@ class Knn:
                 else:
                     class2 += 1
             else:
-                if rotuloTeste == 1:
-                    if class1 > class2:
-                        return True
-                    else:
-                        return False
+                if rotuloTeste == 1 and class1 > class1:    
+                    return True
+                elif rotulo Teste == 2 and class2 > class1:
+                    return True
                 else:
-                    if class2 > class1:
-                        return True
-                    else:
-                        return False
+                    return False
+
 
     def knn(self, amostra, base):
 
