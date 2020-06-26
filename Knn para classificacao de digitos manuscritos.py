@@ -1,6 +1,5 @@
 import idx2numpy as idnp #esse modulo eh usado para conseguir ler arquivos com a extensao .idx-ubyte
 import numpy as np
-import cv2
 import math
 
 '''
