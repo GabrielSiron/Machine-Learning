@@ -121,4 +121,4 @@ for teste in imagensTestes:
         print("...")
     i += 1
 
-print("O percentual de acertos é: %0.2f", (100*soma/i), "%")
+print("O percentual de acertos é: {}%".format(100*soma/i))
