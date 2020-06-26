@@ -16,6 +16,8 @@ proprio arquivo de treino como teste (o dataset
 eh muito grande, possui 60k imagens!)
 
 se quiser, retire os print()
+
+use py -3.8 -m pip install idx2numpy para instalar o primeiro modulo do codigo
 '''
 
 #criacao da classe KNN
@@ -101,8 +103,8 @@ classificador = Knn()
 allVizinhos = {}
 
 # variaveis de controle para a precisao do programa
-i    = 0
-soma = 0
+i    = 0 # vai funcionar como o total de exemplos
+soma = 0 # vai funcionar contabilizando os acertos do programa
 
 # o parametro do programa. Lembre de testar valores diferentes
 # para 'k' e verifique a variacao de precisao
