@@ -6,16 +6,19 @@ Esse programa implementa, atraves da biblioteca
 sklearn uma aplicacao de Machine Learning  com 
 Redes Neurais para diagnostico de parkinson
 '''
+
+# o link para download: https://archive.ics.uci.edu/ml/datasets/Parkinsons
 dataset = open('C:\\Users\\Sironz\\Desktop\\Rede Neural Hello World\\parkinson.txt', 'r')
 
 dados = []
 
+#tratando os dados para ficarem utilizaveis
+
 for linha in dataset:
     linha = linha.split(',')
-    linha.pop(0)
-    for aux in linha:
-        linha[linha.index(aux)] = float(aux)
-
+    linha.pop(0) #removo essa posicao pois representa a identificacao do paciente (inutil para a classificacao)
+    linha = [float(i) for i in linha]
+        
     dados.append(linha)
 
 np.random.shuffle(dados)
@@ -32,6 +35,7 @@ rotulosTreino = []
 for treino in dadosTreino:
     rotulosTreino.append(treino.pop(-7))
 
+# modifique os hiperparametros da rede se necessario
 redeNeural = MLPClassifier(solver='adam',
                            alpha=1e-2,
                            hidden_layer_sizes=(20, 12),
