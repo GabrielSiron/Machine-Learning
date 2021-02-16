@@ -3,6 +3,25 @@ import os
 import telebot
 import mysql.connector
 from datetime import date, timedelta
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+
+sentences = [
+    'Me diga as atividades diarias',
+    'me diga as atividades mensais',
+    'me diga as atividades semanais',
+    'eu te amo bot'
+]
+
+tokenizer = Tokenizer(num_words = 100, oov_token="<OOV>")
+tokenizer.fit_on_texts(sentences)
+sequences = tokenizer.texts_to_sequences(sentences)
+padded = pad_sequences(sequences)
+
+print(tokenizer.word_index)
+print(sequences)
 
 # codigo para o bot do telegram
 bot = telebot.TeleBot('1685155091:AAEWDKG2yHaaBu4pMq7imN0IkXqNJMt1k8c')
