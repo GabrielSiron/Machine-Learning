@@ -1,5 +1,5 @@
 # coding: utf-8
-import os
+import numpy as np
 import telebot
 import mysql.connector
 from datetime import date, timedelta
@@ -7,41 +7,71 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
+import pickle
+import json
 
-sentences = [
-    'Me diga as atividades diarias',
-    'me diga as atividades mensais',
-    'me diga as atividades semanais',
-    'eu te amo bot'
-]
+# variaveis globais
+sentences = []
+labels = []
+datastore = []
 
-tokenizer = Tokenizer(num_words = 100, oov_token="<OOV>")
-tokenizer.fit_on_texts(sentences)
-sequences = tokenizer.texts_to_sequences(sentences)
-padded = pad_sequences(sequences)
+tokenizer = Tokenizer()
+max_length = 7
+vocab_size = 20
 
-print(tokenizer.word_index)
-print(sequences)
+num_epochs = 100
 
-# codigo para o bot do telegram
-bot = telebot.TeleBot('1685155091:AAEWDKG2yHaaBu4pMq7imN0IkXqNJMt1k8c')
-# bot.send_message(-1001338594601, 'O pai ta on ;) Podem começar a interagir')
-# conectando ao banco de dados 
-# select * from att where dia_entrega between data_inicio and data_final;
+# funcoes
+def loadDataset():
 
-try:
-	db_connection = mysql.connector.connect(host='localhost', user='root', password='143867', database='ifba')
-except mysql.connector.Error as error:
-	if error.errno == errorcode.ER_BAD_DB_ERROR:
-		print("Database doesn't exist")
-	elif error.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-		print("User name or password is wrong")
-	else:
-		print(error)
+    with open('dataset.json', 'r') as f:
+        datastore = json.load(f)
 
-cursor = db_connection.cursor()
+    # iterando no json e obtendo as informações
+    for item in datastore:
+        sentences.append(item['frase'])
+        labels.append(item['label'])
+
+def sepDataset(limit):
+    training_sentences = np.array(sentences[:limit])
+    training_labels = np.array(labels[:limit])
+    testing_sentences = np.array(sentences[limit:])
+    testing_labels = np.array(labels[limit:])
+    
+    return training_sentences, training_labels, testing_sentences, testing_labels
+
+def tokenizerWords(training_sentences, training_labels, testing_sentences, testing_labels):
+    tokenizer = Tokenizer(num_words = vocab_size, oov_token="<OOV>")
+    tokenizer.fit_on_texts(training_sentences)
+    training_sentences = tokenizer.texts_to_sequences(training_sentences)
+    padding_training = pad_sequences(training_sentences)
+    
+    testing_sentences = tokenizer.texts_to_sequences(testing_sentences)
+    padding_testing = pad_sequences(testing_sentences)
+
+    return padding_training, padding_testing
+
+def neuralNetwork(padding_training, training_labels, padding_testing, testing_labels):
+    model = tf.keras.Sequential([
+        tf.keras.layers.Embedding(vocab_size, 2, input_length=max_length),
+        tf.keras.layers.GlobalAveragePooling1D(),
+        tf.keras.layers.Dense(24, activation="relu"),
+        tf.keras.layers.Dense(3, activation="relu")
+    ])
+
+    model.compile(loss="binary_crossentropy", optimizer="adam", metrics=['accuracy'])
+
+    history = model.fit(padding_training, training_labels, epochs=num_epochs,
+            validation_data=(padding_testing, testing_labels), verbose=2)
+
+    return model
 
 def processingData(data):
+    '''
+    Funcao para ajustar o formato da data
+    para o aceito pelo MySQL
+    '''
+
     value = data.strip().split('/')
     #dia
     if len(value[0]) == 1:
@@ -55,8 +85,15 @@ def processingData(data):
         
     return value[2] + '-' + value[1] + '-' + value[0]
 
+# codigo para o bot do telegram
+bot = telebot.TeleBot('1685155091:AAEWDKG2yHaaBu4pMq7imN0IkXqNJMt1k8c')
+
 @bot.message_handler(commands=['semanal'])
 def get_list_att_week(message):
+    '''
+    funcao para pegar as atividades do banco de dados 
+    registradas para a semanal atual
+    '''
     data_atual = str(date.today())
     data_semana = str((date.today()) + timedelta(days=7))
     sql = "SELECT * FROM att WHERE dia_entrega BETWEEN '" + data_atual + "' AND '" + data_semana + "';"
@@ -77,8 +114,11 @@ def get_list_att_week(message):
 
 @bot.message_handler(commands=['diario'])
 def get_list_att(message):
+    '''
+    funcao para pegar as atividades do banco de dados 
+    registradas para hoje
+    '''
     data_atual = str(date.today())
-    print(data_atual)
     sql = "SELECT * FROM att WHERE dia_entrega='" + data_atual + "';"
     cursor.execute(sql)
     reply = "Ola, " + message.from_user.first_name + ". Deixe-me ver..."
@@ -95,6 +135,10 @@ def get_list_att(message):
 
 @bot.message_handler(commands=['add'])
 def send_welcome(message):
+    '''
+    funcao para adicionar no banco de dados
+    uma atividade
+    '''
     values = message.text[4:len(message.text)].strip().split(',')
     values[2] = processingData(values[2])
     sql = "INSERT INTO att (nome, pts, dia_entrega) VALUES (%s, %s, %s)"
@@ -103,17 +147,26 @@ def send_welcome(message):
     db_connection.commit()
     bot.send_message(message.chat.id, "Atividade adicionada com Sucesso! 😀")
 
-'''
-@bot.message_handler()
-def send_welcome(message):
-    if message.text.upper() == "DA UM JEITO NELA AI BOT":
-        bot.send_message(message.chat.id, "Pare de encher o saco de Gabriel, Priscila. Senão você vai ter que dar o cu pra ele! ")
+try:
+	db_connection = mysql.connector.connect(host='localhost', user='root', password='143867', database='ifba')
+except mysql.connector.Error as error:
+	if error.errno == errorcode.ER_BAD_DB_ERROR:
+		print("Database doesn't exist")
+	elif error.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+		print("User name or password is wrong")
+	else:
+		print(error)
 
-# Essa eh a forma de fazer ele obedecer um comando, precedido por '/' no telegram
+cursor = db_connection.cursor()
 
-@bot.message_handler(commands=['today'])
-def send_league_data(message):
-    bot.reply_to(message, get_league())
-'''
+if __name__ == "__main__":
+    # carrega o dataset 
+    loadDataset()
+    # separa partes para treino e teste
+    train_s, train_l, test_s, test_l = sepDataset(limit=11)
+    # cria tokens para as palavras e sequencias, para poder
+    # usar na rede neural
+    pad_train, pad_test = tokenizerWords(train_s, train_l, test_s, test_l)
+    neuralNetwork(pad_train, train_l, pad_test, test_l)
 
-bot.polling()
+    bot.polling()
