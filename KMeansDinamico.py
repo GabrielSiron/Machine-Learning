@@ -1,55 +1,49 @@
-import cv2
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-from sklearn.cluster import KMeans
+from matplotlib import pyplot as plt
+from random import uniform
 
-dataset = np.array([[178, 77], 
-                    [154, 64],
-                    [160, 60],
-                    [185, 80],
-                    [177, 76],
-                    [175, 84],
-                    [156, 55],
-                    [160, 65],
-                    [153, 52],
-                    [179, 78],
-                    [145, 49],
-                    [156, 53],
-                    [170, 73],
-                    [152, 56],
-                    [149, 50],
-                    [172, 80],
-                    [187, 85],
-                    [164, 52],
-                    [150, 50],
-                    [176, 79]])
+UNITVALUES = 99
 
-kmeans = KMeans(n_clusters = 3, 
-        init='random',
-        n_init=1,
-        max_iter=1)
+CENTERS = 3
 
-figure = plt.figure()
-ax = figure.add_subplot(1, 1, 1)
-qtd = 3
-predict_y = []
-list_center = [0]*qtd
+def calcEuclidianDistance(x, ref):
+    return (x[0]-ref[0])**2 + (x[1]-ref[1])**2
 
-aux1 = 0
-aux2 = 0
-aux3 = 0
+def generateValues():
+    return [[uniform(0, 100), uniform(0, 100), 0] for x in range(UNITVALUES)]
+    
 
-for j in range(10):
-    if j > 0:
-        print(kmeans.cluster_centers_)
-    predict_y.append(kmeans.fit_predict(dataset))
-    print(kmeans.cluster_centers_)
+def generateCenters():
+    return [[uniform(0, 100), uniform(0, 100), x] for x in range(CENTERS)]
 
-copy_x = list(dataset[:,0])
-copy_y = list(dataset[:,1])
-for i in range(10):
-    ax.clear()
-    ax.scatter(copy_x, copy_y, s = 70, c = predict_y[i])
+values = generateValues()
+
+centers = generateCenters()
+
+while True:
+    for i in range(UNITVALUES):
+        distances = []
+        for j in range(CENTERS):
+            distances.append(calcEuclidianDistance(values[i], centers[j]))
+        values[i][2] = distances.index(min(distances))
+
+    for i in range(UNITVALUES):
+        plt.plot(values[i][0], values[i][1], 'o', color=(values[i][2]/CENTERS, values[i][2]/CENTERS, values[i][2]/CENTERS))
+    for j in range(CENTERS):
+        plt.plot(centers[j][0], centers[j][1], 'o', color=(0.5, 0.2, 0.7))
+
     plt.draw()
-    plt.pause(0.001)
+    plt.pause(0.01) 
+    plt.clf()
+ 
+    sumValuesX = [0]*CENTERS
+    sumValuesY = [0]*CENTERS
+    qtdValues = [0]*CENTERS
+
+    for i in range(UNITVALUES):
+        qtdValues[values[i][2]] += 1
+        sumValuesX[values[i][2]] += values[i][0]
+        sumValuesY[values[i][2]] += values[i][1]
+
+    for j in range(CENTERS):
+        centers[j][0] = sumValuesX[j]/qtdValues[j]
+        centers[j][1] = sumValuesY[j]/qtdValues[j] 
