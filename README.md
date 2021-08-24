@@ -18,4 +18,4 @@ Primeira imagem
 Segunda imagem, alguns instantes depois da primeira. É possível notar a mudança dos centros
 ![image2](https://user-images.githubusercontent.com/56319681/130703149-a00830bb-62ad-4e24-93dd-c442fcd584a5.png)
 
-O programa é um KMeans, que gera os dados aleatoriamente e mostra num gráfico com Matplotlib as iterações do algoritmo.
+O programa é um KMeans, que gera os dados aleatoriamente e mostra num gráfico com Matplotlib as iterações do algoritmo. pra você que está lendo, ainda são duas imagens kkk, então rode o programa pra ver o efeito real!
