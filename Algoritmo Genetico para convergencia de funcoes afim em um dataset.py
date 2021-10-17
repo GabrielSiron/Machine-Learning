@@ -1,7 +1,7 @@
 from random import uniform
 from matplotlib import pyplot as plt
 
-NUMBER_INDIVIDUALS = 15
+NUMBER_INDIVIDUALS = 10
 
 class Individual:
     def __init__(self, first_generation=False):
