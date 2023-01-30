@@ -107,7 +107,7 @@ def get_list_att_week(message):
         reply = reply + str(i) + ' - ' + str(nome) + ", valendo " + str(pts) + " pontos;\n"
         i += 1
     if i == 1:
-        reply = reply + "Nada, seu viado"
+        reply = reply + "Nada"
     else:
         reply = reply + "😀"
     bot.send_message(message.chat.id, reply)
