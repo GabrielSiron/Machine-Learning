@@ -1,4 +1,4 @@
-# Machine-Learning-com-Python
+# Machine Learning
 
 Programas que desenvolvi para me exercitar e aprender mais de Machine Learning
 
